@@ -13,3 +13,6 @@
 [submodule "components/moog/MoogLadders"]
 	path = components/moog/MoogLadders
 	url = https://github.com/ctag-fh-kiel/MoogLadders.git
+[submodule "components/daisysp/DaisySP"]
+	path = components/daisysp/DaisySP
+	url = https://github.com/ctag-fh-kiel/DaisySP.git

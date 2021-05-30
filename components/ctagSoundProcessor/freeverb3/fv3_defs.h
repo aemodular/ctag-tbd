@@ -28,9 +28,11 @@
 #ifndef isfinite
 #define isfinite(v) std::isfinite(v)
 #endif
+/*
 #ifndef isnormal
 #define isnormal(v) std::isnormal(v)
 #endif
+ */
 #ifndef fpclassify
 #define fpclassify(v) std::fpclassify(v)
 #endif

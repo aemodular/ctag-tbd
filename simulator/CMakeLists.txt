@@ -46,6 +46,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/esp-dsp/modules/ma
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/esp-dsp/modules/math/mulc/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/esp-dsp/modules/common/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/mutable/eurorack)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/daisysp/DaisySP/Source)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/moog/MoogLadders/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fake-idf)
 
@@ -54,6 +55,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../components/ctagSoundProcessor ${
 
 #mutable
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../components/mutable ${CMAKE_CURRENT_BINARY_DIR}/mutable)
+
+#daisysp
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../components/daisysp ${CMAKE_CURRENT_BINARY_DIR}/daisysp)
 
 #rapidjson
 file(GLOB RAPIDJSON_FILES
@@ -148,7 +152,7 @@ set(SAMPLE_ROM_FILE "${CMAKE_CURRENT_SOURCE_DIR}/../sample_rom/sample-rom.tbd" C
 add_executable(tbd-sim ${SRC_FILES} ${SRC_FILES2} ${RAPIDJSON_FILES} ${TINYWAV_FILES})
 target_compile_definitions(tbd-sim PRIVATE SAMPLE_ROM_FILE="${SAMPLE_ROM_FILE}")
 target_link_libraries(tbd-sim simple-web-server)
-target_link_libraries(tbd-sim rtaudio ctagsp mutable esp-dsp)
+target_link_libraries(tbd-sim rtaudio ctagsp mutable daisysp esp-dsp)
 target_link_libraries(tbd-sim ${Boost_LIBRARIES})
 if(WIN32)
     target_link_libraries(tbd-sim ws2_32 wsock32)
@@ -168,7 +172,7 @@ set(TEST_FILES
         )
 
 add_executable(run_tests ${TEST_FILES})
-target_link_libraries(run_tests ctagsp mutable esp-dsp)
+target_link_libraries(run_tests ctagsp mutable daisysp esp-dsp)
 target_link_libraries(run_tests ${Boost_LIBRARIES})
 target_include_directories(run_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../components/ctagSoundProcessor)
 target_include_directories(run_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)

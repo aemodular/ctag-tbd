@@ -59,7 +59,7 @@ if (TBD_SIM)
 else ()
     idf_component_register(SRCS ${SRCS_FILES}
             INCLUDE_DIRS . ${CMAKE_BINARY_DIR}/gen_include
-            PRIV_REQUIRES rapidjson esp-dsp mutable moog spi_flash)
+            PRIV_REQUIRES rapidjson esp-dsp mutable daisysp moog spi_flash)
     # number of CV ins
     if(CONFIG_TBD_PLATFORM_STR)
         target_compile_definitions(${COMPONENT_LIB} PUBLIC N_CVS=8 N_TRGS=2)

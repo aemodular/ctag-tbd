@@ -1,0 +1,21 @@
+{
+  "id": "DaisySP",
+  "isStereo": false,
+  "name": "DaisySP",
+  "hint": "Test of DaisySP",
+  "params": [
+    {
+      "id": "test",
+      "name": "Test",
+      "type": "int",
+      "min": 0,
+      "max": 4095,
+      "step": 1
+    },
+    {
+      "id": "trigger",
+      "name": "Trigger",
+      "type": "bool"
+    }
+  ]
+}
