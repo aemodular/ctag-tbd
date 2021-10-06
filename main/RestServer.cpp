@@ -42,6 +42,7 @@ respective component folders / files if different from this license.
 #include "OTAManager.hpp"
 #include "sdkconfig.h"
 #include "esp_spi_flash.h"
+#include "version.hpp"
 
 using namespace CTAG;
 using namespace CTAG::REST;
@@ -129,12 +130,22 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::get_plugins_get_handler(httpd_req_t *req) {
+    ESP_LOGD("get_plugins_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, CTAG::AUDIO::SoundProcessorManager::GetCStrJSONSoundProcessors());
     return ESP_OK;
 }
 
 esp_err_t RestServer::get_active_plugin_get_handler(httpd_req_t *req) {
+    ESP_LOGD("get_active_plugin_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     size_t qlen = httpd_req_get_url_query_len(req);
     size_t urilen = strlen(req->uri);
     char ch = req->uri[urilen - qlen - 1];
@@ -150,6 +161,11 @@ esp_err_t RestServer::get_active_plugin_get_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::get_params_plugin_get_handler(httpd_req_t *req) {
+    ESP_LOGD("get_params_plugin_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     size_t qlen = httpd_req_get_url_query_len(req);
     size_t urilen = strlen(req->uri);
     char ch = req->uri[urilen - qlen - 1];
@@ -163,6 +179,11 @@ esp_err_t RestServer::get_params_plugin_get_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::set_active_plugin_get_handler(httpd_req_t *req) {
+    ESP_LOGD("set_active_plugin_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     char s[128];
     char v[128];
     size_t qlen = httpd_req_get_url_query_len(req);
@@ -185,6 +206,11 @@ esp_err_t RestServer::set_active_plugin_get_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::set_plugin_param_get_handler(httpd_req_t *req) {
+    ESP_LOGD("set_plugin_param_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     char query[128];
     char id[128];
     char cstrvalue[128];
@@ -217,6 +243,11 @@ esp_err_t RestServer::set_plugin_param_get_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::get_presets_get_handler(httpd_req_t *req) {
+    ESP_LOGD("get_presets_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     char query[128];
     size_t qlen = httpd_req_get_url_query_len(req);
     size_t urilen = strlen(req->uri);
@@ -232,6 +263,11 @@ esp_err_t RestServer::get_presets_get_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::save_preset_get_handler(httpd_req_t *req) {
+    ESP_LOGD("save_preset_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     char query[128];
     char name[128];
     char number[16];
@@ -251,6 +287,11 @@ esp_err_t RestServer::save_preset_get_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::load_preset_get_handler(httpd_req_t *req) {
+    ESP_LOGD("load_preset_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     char query[128];
     char number[16];
     size_t qlen = httpd_req_get_url_query_len(req);
@@ -282,14 +323,15 @@ esp_err_t RestServer::StartRestServer() {
     config.task_priority = tskIDLE_PRIORITY + 4;
     config.max_uri_handlers = 20;
     config.stack_size = 8192;
+    config.recv_wait_timeout   = 20;
+    config.send_wait_timeout = 20;
     /*
     config.max_open_sockets   = 10;
     config.max_resp_headers   = 10;
-    config.recv_wait_timeout   = 20;
-    config.send_wait_timeout = 20;
+
     config.backlog_conn       = 10;
-*/
-    //config.lru_purge_enable   = false;
+    config.lru_purge_enable   = false;
+     */
 /*
 #define HTTPD_DEFAULT_CONFIG() {                        \
         .task_priority      = tskIDLE_PRIORITY+5,       \
@@ -502,6 +544,11 @@ esp_err_t RestServer::StartRestServer() {
 }
 
 esp_err_t RestServer::set_configuration_post_handler(httpd_req_t *req) {
+    ESP_LOGD("set_configuration_post_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     /* Destination buffer for content of HTTP POST request.
      * httpd_req_recv() accepts char* only, but content could
      * as well be any binary data (needs type casting).
@@ -530,12 +577,22 @@ esp_err_t RestServer::set_configuration_post_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::get_configuration_get_handler(httpd_req_t *req) {
+    ESP_LOGD("get_configuration_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     httpd_resp_set_type(req, "application/json");
     httpd_resp_sendstr(req, CTAG::AUDIO::SoundProcessorManager::GetCStrJSONConfiguration());
     return ESP_OK;
 }
 
 esp_err_t RestServer::get_preset_json_handler(httpd_req_t *req) {
+    ESP_LOGD("get_configuration_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     char query[128];
     char pluginID[64];
     httpd_req_get_url_query_str(req, query, 128);
@@ -543,7 +600,7 @@ esp_err_t RestServer::get_preset_json_handler(httpd_req_t *req) {
     char *pLastSlash = strrchr(req->uri, '/');
     if (pLastSlash) {
         strcpy(pluginID, pLastSlash + 1);
-        ESP_LOGE(REST_TAG, "Sending all preset data of plugin %s as JSON", pluginID);
+        ESP_LOGD(REST_TAG, "Sending all preset data of plugin %s as JSON", pluginID);
         const char *json = CTAG::AUDIO::SoundProcessorManager::GetCStrJSONSoundProcessorPresets(string(pluginID));
         if (json)
             httpd_resp_sendstr(req, json);
@@ -567,8 +624,17 @@ esp_err_t RestServer::reboot_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::get_calibration_get_handler(httpd_req_t *req) {
+    ESP_LOGD("get_calibration_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     httpd_resp_set_type(req, "application/json");
+#ifndef CONFIG_TBD_PLATFORM_MK2
     httpd_resp_sendstr(req, CTAG::CAL::Calibration::GetCStrJSONCalibration());
+#else
+    httpd_resp_sendstr(req, "{}");
+#endif
     return ESP_OK;
 }
 
@@ -621,6 +687,11 @@ esp_err_t RestServer::ota_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::set_calibration_post_handler(httpd_req_t *req) {
+    ESP_LOGD("set_calibration_post_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     ESP_LOGI("REST", "Set calibration post handler: content length %d", req->content_len);
     char *content = (char *) heap_caps_malloc(req->content_len + 1, MALLOC_CAP_SPIRAM);
     int ret = httpd_req_recv(req, content, req->content_len);
@@ -645,6 +716,11 @@ esp_err_t RestServer::set_calibration_post_handler(httpd_req_t *req) {
 }
 
 esp_err_t RestServer::set_preset_json_handler(httpd_req_t *req) {
+    ESP_LOGD("set_preset_json_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     char query[128];
     char pluginID[64];
     httpd_req_get_url_query_str(req, query, 128);
@@ -652,7 +728,7 @@ esp_err_t RestServer::set_preset_json_handler(httpd_req_t *req) {
     char *pLastSlash = strrchr(req->uri, '/');
     if (pLastSlash) {
         strcpy(pluginID, pLastSlash + 1);
-        ESP_LOGE(REST_TAG, "Storing data for %s as JSON", pluginID);
+        ESP_LOGD(REST_TAG, "Storing data for %s as JSON", pluginID);
         char *content = (char *) heap_caps_malloc(req->content_len + 1, MALLOC_CAP_SPIRAM);
         int ret = httpd_req_recv(req, content, req->content_len);
         if (ret <= 0) {  /* 0 return value indicates connection closed */
@@ -748,20 +824,25 @@ esp_err_t RestServer::srom_handler(httpd_req_t *req) {
 esp_err_t RestServer::get_iocaps_handler(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/json");
 #if defined(CONFIG_TBD_PLATFORM_STR)
-    string const s("{\"p\":\"str\",\"t\":[\"TRIG0\", \"TRIG1\"], \"cv\":[\"CV1\",\"CV2\",\"CV3\",\"CV4\",\"CV5\",\"CV6\",\"CV7\",\"CV8\"]}");
+    string const s("{\"HWV\":\"" + TBD_HW_VERSION + "\",\"FWV\":\"" + TBD_FW_VERSION + "\",\"p\":\"str\",\"t\":[\"TRIG0\", \"TRIG1\"], \"cv\":[\"CV1\",\"CV2\",\"CV3\",\"CV4\",\"CV5\",\"CV6\",\"CV7\",\"CV8\"]}");
 #elif defined(CONFIG_TBD_PLATFORM_MK2)
-    string const s("{\"p\":\"mk2\",\"t\":[\"TRIG0\",\"TRIG1\",\"TRIG2\",\"TRIG3\",\"TRIG4\",\"TRIG5\",\"M0NOTE\",\"M1NOTE\",\"M0VEL\",\"M1VEL\",\"MOD0\",\"MOD1\"],\"cv\":[\"UCVPOT0\",\"UCVPOT1\",\"UCVPOT2\",\"UCVPOT3\",\"POT0\",\"POT1\",\"POT2\",\"POT3\",\"PCV0\",\"PCV1\",\"BPCV0\",\"BPCV1\",\"BPCV2\",\"BPCV3\",\"M0NOTE\",\"M1NOTE\",\"M0VEL\",\"M1VEL\",\"M0PB\",\"M1PB\",\"M0MOD\",\"M1MOD\"]}");
+    string const s("{\"HWV\":\"" + TBD_HW_VERSION + "\",\"FWV\":\"" + TBD_FW_VERSION + "\",\"p\":\"mk2\",\"t\":[\"TRIG0\",\"TRIG1\",\"TRIG2\",\"TRIG3\",\"TRIG4\",\"TRIG5\",\"M0NOTE\",\"M1NOTE\",\"M0VEL\",\"M1VEL\",\"MOD0\",\"MOD1\"],\"cv\":[\"UCVPOT0\",\"UCVPOT1\",\"UCVPOT2\",\"UCVPOT3\",\"POT0\",\"POT1\",\"POT2\",\"POT3\",\"PCV0\",\"PCV1\",\"BPCV0\",\"BPCV1\",\"BPCV2\",\"BPCV3\",\"M0NOTE\",\"M1NOTE\",\"M0VEL\",\"M1VEL\",\"M0PB\",\"M1PB\",\"M0MOD\",\"M1MOD\"]}");
 #else
-    string const s("{\"p\":\"mk1\",\"t\":[\"TRIG0\", \"TRIG1\"], \"cv\":[\"CV0\",\"CV1\",\"POT0\",\"POT1\"]}");
+    string const s("{\"HWV\":\"" + TBD_HW_VERSION + "\",\"FWV\":\"" + TBD_FW_VERSION + "\",\"p\":\"mk1\",\"t\":[\"TRIG0\", \"TRIG1\"], \"cv\":[\"CV0\",\"CV1\",\"POT0\",\"POT1\"]}");
 #endif
     httpd_resp_sendstr(req, s.c_str());
     return ESP_OK;
 }
 
 esp_err_t RestServer::favorite_get_handler(httpd_req_t *req) {
+    ESP_LOGD("favorite_get_handler", "1: Mem freesize internal %d, largest block %d, free SPIRAM %d, largest block SPIRAM %d!",
+             heap_caps_get_free_size(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL),
+             heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
+             heap_caps_get_largest_free_block(MALLOC_CAP_SPIRAM));
     string cmd{req->uri};
 
-    ESP_LOGI("REST", "Favorite handler cmd: %s", cmd.c_str());
+    ESP_LOGD("REST", "Favorite handler cmd: %s", cmd.c_str());
 
     if(cmd.rfind("getAll") != string::npos){
         httpd_resp_set_type(req, "application/json");

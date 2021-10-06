@@ -95,34 +95,23 @@ Get parameters of active plugin of specified channel number
     }
 ```
 
-####URL: `/setActivePlugin/:ch`
+####URL: `/setActivePlugin/:ch?id=Void`
 
 Set active plugin id of specified channel number
 
 **Method** : `GET`
 
-**Data example**
+Query string id=Void
 
-```
-{"id": "am"}
-```
-
-####URL: `/setPluginParam/:ch`
+####URL: `/setPluginParam/:ch?id=dummy&current=true`
 
 Set parameter of plugin of specified channel
 
 **Method** : `GET`
 
-**Data example**
+Query string id=dummy&current=true
 
-```json
-{
-    "id": "sup",
-    "current": 127
-}
-```
-
-####URL: `/setPluginParamCV/:ch`
+####URL: `/setPluginParamCV/:ch?id=sup&cv=1`
 
 Set cv channel (-1 [off], 0, 1) of plugin parameter of specified channel
 
@@ -130,14 +119,9 @@ Set cv channel (-1 [off], 0, 1) of plugin parameter of specified channel
 
 **Data example**
 
-```json
-{
-    "id": "sup",
-    "cv": 1
-}
-```
+See query string
 
-####URL: `/setPluginParamTRIG/:ch`
+####URL: `/setPluginParamTRIG/:ch?id=enable&trig=1`
 
 Set trig channel (-1 [off], 0, 1) of parameter of plugin of specified channel
 
@@ -145,12 +129,7 @@ Set trig channel (-1 [off], 0, 1) of parameter of plugin of specified channel
 
 **Data example**
 
-```json
-{
-    "id": "enable",
-    "trig": -1
-}
-```
+See query string
 
 ####URL: `/getPresets/:ch`
 
@@ -208,40 +187,22 @@ Save preset data for a given plugin, the next available storage slot will be use
   }
 ```
 
-####URL: `/loadPreset/:ch`
+####URL: `/loadPreset/:ch?`
 
 Load a preset with number
 
 **Method** : `GET`
 
-**Data example**
+Query string is e.g. --> number=0
 
-```json
-[
-  {
-    "number": 0
-  },
-  ...
-]
-```
+####URL: `/savePreset/:ch?`
 
-####URL: `/savePreset/:ch`
-
-Save a preset with name
+Save a preset with name (current plugin settings)
 
 **Method** : `GET`
 
-**Data example**
+Query string is e.g. --> number=0&name=coolname
 
-```json
-[
-  {
-    "number": 0,
-    "name": "New Preset"
-  },
-  ...
-]
-```
 
 ####URL: `/favorites/getAll`
 
@@ -255,10 +216,10 @@ Get array of favorites, max. 10 supported
 [
   {
    "name": "Favorite 0",
-   "plug-0": "Void",
-   "pre-0": 0,
-   "plug-1": "Void",
-   "pre-1": 0,
+   "plug_0": "Void",
+   "pre_0": 0,
+   "plug_1": "Void",
+   "pre_1": 0,
    "ustring": ""
   },
   ...
@@ -279,10 +240,10 @@ id is the favorite which is to be stored
 ```json
 {
  "name": "New Favorite",
- "plug-0": "BCSR",
- "pre-0": 3,
- "plug-1": "WTOsc",
- "pre-1": 2,
+ "plug_0": "BCSR",
+ "pre_0": 3,
+ "plug_1": "WTOsc",
+ "pre_1": 2,
  "ustring": ""
 }
 ```
