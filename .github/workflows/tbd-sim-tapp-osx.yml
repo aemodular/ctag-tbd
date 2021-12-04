@@ -1,4 +1,4 @@
-name: tbd-sim-tapp-osx
+name: tbd-sim-tapp-tbd4vcv-osx
 
 on:
   push:
@@ -23,9 +23,10 @@ jobs:
           submodules: recursive
       - run: cd tapp && mkdir build && cd build && cmake .. && make && cpack && cd ../..
       - run: cd simulator && mkdir build && cd build && cmake .. && make && cpack && cd ../..
+      - run: wget https://vcvrack.com/downloads/Rack-SDK-2.0.0-mac.zip && unzip Rack-SDK-2.0.0-mac.zip && cd Rack-SDK && export RACK_DIR=`pwd` && cd ../tbd4vcv && mkdir build && cd build && cmake .. && make && cpack && cd ../..
       - name: Archive binaries
         run: |
-          zip --junk-paths binaries tapp/build/*.zip simulator/build/*.zip
+          zip --junk-paths binaries tapp/build/*.zip simulator/build/*.zip tbd4vcv/build/*.zip
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -33,9 +34,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.sha }}
-          release_name: tbd-sim-tapp-osx-${{ github.sha }}
+          release_name: tbd-sim-tapp-tbd4vcv-osx-${{ github.sha }}
           body: |
-            tapp osx
+            tbd-sim-tapp-tbd4vcv-osx
           draft: true
           prerelease: true
       - name: Upload Release Asset

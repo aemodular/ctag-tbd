@@ -19,38 +19,19 @@ License and copyright details for specific submodules are included in their
 respective component folders / files if different from this license.
 ***************/
 
-#include "esp_spi_flash.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
+#include "plugin.hpp"
 
-static char* file_buffer = NULL;
 
-void spi_flash_emu_init(const char *sromFile) {
-    if(file_buffer != NULL) return;
-    if(NULL == sromFile) return;
-    FILE *f = fopen(sromFile, "rb");
-    assert(f != NULL);
-    fseek(f, 0L, SEEK_END);
-    int sz=ftell(f);
-    rewind(f);
-    file_buffer = (char*)malloc(sz + 1);
-    assert(file_buffer != NULL);
-    int res = fread(file_buffer, sz, 1, f);
-    assert(res != 0);
-    fclose(f);
-}
+rack::Plugin* pluginInstance;
 
-void spi_flash_emu_release(){
-    if(file_buffer != NULL){
-        free(file_buffer);
-        file_buffer = NULL;
-    }
-}
 
-esp_err_t spi_flash_read(size_t src, void *dstv, size_t size){
-    if(NULL == file_buffer) return ESP_ERR_INVALID_ARG;
-    memcpy(dstv, (const void*)&file_buffer[src], size);
-    return ESP_OK;
+void init(rack::Plugin* p) {
+    pluginInstance = p;
+
+	// Add modules here
+	// p->addModel(modelMyModule);
+    p->addModel(modeltbd4vcv);
+
+	// Any other plugin initialization may go here.
+	// As an alternative, consider lazy-loading assets and lookup tables when your module is created to reduce startup times of Rack.
 }

@@ -1,31 +1,28 @@
-# The following lines of boilerplate have to be in your project's CMakeLists
-# in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(tbd-sim)
+set(RACK_DIR $ENV{RACK_DIR})
 
-add_definitions(
-        -DRAPIDJSON_ALLOCATOR_DEFAULT_CHUNK_CAPACITY=16384 # rapidjson
-        -DRAPIDJSON_HAS_STDSTRING=1 # rapidjson
-        -DTBD_SIM=1
-        -Wno-unused-local-typedefs
-        -DTEST
-        -DCONFIG_DSP_ANSI=1
-        -DN_CVS=4
-        -DN_TRIGS=2
-)
+if ("${RACK_DIR}" STREQUAL "")
+    message(FATAL_ERROR "Path to Rack SDK missing! Add -DRACK_DIR=<path to Rack SDK> to the cmake call.")
+endif ()
 
-set(TBD_SIM 1)
+message(STATUS "Use Rack SDK: ${RACK_DIR}")
+
+# set this to the plugin slug!
+set(PLUGIN_NAME tbd4vcv)
+
+project(${PLUGIN_NAME})
 
 ## Web Server Part
 add_library(simple-web-server INTERFACE)
 target_include_directories(simple-web-server INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/Simple-Web-Server)
 find_package(Threads REQUIRED)
 target_link_libraries(simple-web-server INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-find_package(Boost 1.67.0 COMPONENTS system thread REQUIRED)
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost 1.67.0 REQUIRED COMPONENTS system filesystem thread )
 target_link_libraries(simple-web-server INTERFACE ${Boost_LIBRARIES})
 target_include_directories(simple-web-server INTERFACE ${Boost_INCLUDE_DIR})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
@@ -34,11 +31,64 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_L
     target_link_libraries(simple-web-server INTERFACE ${Boost_LIBRARIES})
     target_include_directories(simple-web-server INTERFACE ${Boost_INCLUDE_DIR})
 endif()
+if(NOT TARGET Boost::filesystem)
+    add_library(Boost::filesystem IMPORTED INTERFACE)
+    set_property(TARGET Boost::filesystem PROPERTY
+            INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR})
+    set_property(TARGET Boost::filesystem PROPERTY
+            INTERFACE_LINK_LIBRARIES ${Boost_LIBRARIES})
+endif()
 
-#rtaudio
-set(RTAUDIO_BUILD_STATIC_LIBS TRUE)
-add_subdirectory(rtaudio)
+# Plugin part
+set(LIB_NAME plugin)
+set(PLUGIN_SOURCES
+        src/plugin.cpp src/WebServer.cpp src/tbd4vcv.cpp src/SPManager.cpp src/SPManagerDataModel.cpp src/FavoritesModel.cpp
+        "../simulator/fake-idf/esp_heap_caps.c"
+        "../simulator/fake-idf/esp_spi_flash.c"
+        )
 
+add_library(${LIB_NAME} SHARED ${PLUGIN_SOURCES})
+target_include_directories(${LIB_NAME} PUBLIC "${RACK_DIR}/include" "${RACK_DIR}/dep/include")
+target_include_directories(${LIB_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../simulator/Simple-Web-Server")
+target_include_directories(${LIB_NAME} PUBLIC ${Boost_INCLUDE_DIR})
+
+if(WIN32)
+    target_compile_definitions(${LIB_NAME} PRIVATE -DARCH_WIN)
+    target_link_libraries(${LIB_NAME} PUBLIC ws2_32 wsock32)
+    target_link_directories(${LIB_NAME} PUBLIC ${RACK_DIR})
+    target_link_libraries(${LIB_NAME} PUBLIC "Rack")
+    target_link_options(${LIB_NAME} PRIVATE -static-libgcc -static-libstdc++)
+elseif(APPLE)
+    target_compile_definitions(${LIB_NAME} PRIVATE -DARCH_MAC)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS} -undefined dynamic_lookup")
+    endif()
+    target_link_options(${LIB_NAME} PUBLIC
+            -stdlib=libc++
+    )
+    target_link_libraries(${LIB_NAME} PUBLIC -static c++)
+else()
+    add_compile_options(-fPIC)
+    target_link_options(${LIB_NAME} PRIVATE -static-libgcc -static-libstdc++)
+    target_compile_definitions(${LIB_NAME} PRIVATE -DARCH_LIN)
+endif()
+target_compile_options(${LIB_NAME} PRIVATE -fPIC)
+target_link_libraries(${LIB_NAME} PUBLIC ${Boost_LIBRARIES} ctagsp mutable esp-dsp)
+set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
+
+# tbd part
+add_compile_definitions(
+        RAPIDJSON_ALLOCATOR_DEFAULT_CHUNK_CAPACITY=16384 # rapidjson
+        RAPIDJSON_HAS_STDSTRING=1 # rapidjson
+        TBD_SIM=1
+        TEST=1
+        CONFIG_DSP_ANSI=1
+        N_CVS=4
+        N_TRIGS=2
+        #SPIFFS_PATH="./plugins/tbd4vcv/spiffs_image/" # TODO this has to go in the firmware cmakelists.txt as well + simulator
+)
+target_compile_options(${LIB_NAME} PRIVATE -Wno-unused-local-typedefs)
+set(TBD_SIM 1)
 #ctagSoundProcessor
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/rapidjson)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/esp-dsp/modules/iir/include)
@@ -49,10 +99,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/esp-dsp/modules/ma
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/esp-dsp/modules/common/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/mutable/eurorack)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../components/moog/MoogLadders/src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/fake-idf)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../simulator/fake-idf)
 
+#ctag sound processors
 set(COMPONENT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../components/ctagSoundProcessor)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../components/ctagSoundProcessor ${CMAKE_CURRENT_BINARY_DIR}/ctagsp)
+target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../components/ctagSoundProcessor)
+target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gen_include)
+#target_include_directories(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../main)
 
 #mutable
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../components/mutable ${CMAKE_CURRENT_BINARY_DIR}/mutable)
@@ -60,14 +114,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../components/mutable ${CMAKE_CURRE
 #rapidjson
 file(GLOB RAPIDJSON_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/../components/rapidjson/rapidjson/*.h
-)
-
-#tinywav
-set(TINYWAV_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/../components/tinywav/tinywav.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../components/tinywav/tinywav.c
         )
-
 #esp-dsp
 set(ESP_DSP_DIR "../components/esp-dsp")
 set(ESP_DSP_SRC_FILES  "${ESP_DSP_DIR}/modules/common/misc/dsps_pwroftwo.cpp"
@@ -127,73 +174,35 @@ set(ESP_DSP_INC_DIRS   "${ESP_DSP_DIR}/modules/dotprod/include"
 add_library(esp-dsp STATIC ${ESP_DSP_SRC_FILES})
 target_include_directories(esp-dsp PRIVATE ${ESP_DSP_INC_DIRS})
 
-## Application
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.67.0 COMPONENTS system thread filesystem program_options)
-if(NOT Boost_FOUND)
-    message(FATAL_ERROR "could not find Boost!")
-endif()
 
-file(GLOB SRC_FILES *.cpp *.hpp)
-set(SRC_FILES2
-        "../main/SPManagerDataModel.cpp"
-        "../main/FavoritesModel.cpp"
-        "fake-idf/esp_heap_caps.c"
-        "fake-idf/esp_spi_flash.c"
-        )
-
-add_executable(tbd-sim ${SRC_FILES} ${SRC_FILES2} ${RAPIDJSON_FILES} ${TINYWAV_FILES})
-target_compile_definitions(tbd-sim PRIVATE SAMPLE_ROM_FILE="${SAMPLE_ROM_FILE}")
-
-if(WIN32)
-    target_link_libraries(tbd-sim -static simple-web-server)
-    target_link_libraries(tbd-sim -static rtaudio ctagsp mutable esp-dsp)
-    target_link_libraries(tbd-sim -static ${Boost_LIBRARIES})
-    target_link_libraries(tbd-sim -static ws2_32 wsock32)
-else()
-    target_link_libraries(tbd-sim simple-web-server)
-    target_link_libraries(tbd-sim rtaudio ctagsp mutable esp-dsp)
-    target_link_libraries(tbd-sim ${Boost_LIBRARIES})
-endif()
-target_include_directories(tbd-sim PRIVATE ${Boost_INCLUDE_DIR})
-target_include_directories(tbd-sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../components/ctagSoundProcessor)
-target_include_directories(tbd-sim PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gen_include)
-target_include_directories(tbd-sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/rtaudio)
-target_include_directories(tbd-sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../components/tinywav)
-target_include_directories(tbd-sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../main)
+# install
+#install(TARGETS ${LIB_NAME} LIBRARY DESTINATION ${RACK_DIR}/plugins/${PLUGIN_NAME})
+#install(FILES plugin.json DESTINATION ${RACK_DIR}/plugins/${PLUGIN_NAME})
+#install(FILES ../sample_rom/sample-rom.tbd DESTINATION ${RACK_DIR}/plugins/${PLUGIN_NAME}/sample-rom)
+#install(DIRECTORY res DESTINATION ${RACK_DIR}/plugins/${PLUGIN_NAME})
+#install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../spiffs_image DESTINATION ${RACK_DIR}/plugins/${PLUGIN_NAME})
+#install(DIRECTORY ${CMAKE_BINARY_DIR}/www DESTINATION .)
 
 
-set(TEST_FILES
-        tests/test_ctagADSREnv.cpp
-        tests/test_ctagADSREnv.hpp
-        tests/run_tests.cpp
-        )
-
-add_executable(run_tests ${TEST_FILES})
-target_link_libraries(run_tests ctagsp mutable esp-dsp)
-target_link_libraries(run_tests ${Boost_LIBRARIES})
-target_include_directories(run_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../components/ctagSoundProcessor)
-target_include_directories(run_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-target_include_directories(run_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gen_include)
-target_include_directories(run_tests PRIVATE ${Boost_INCLUDE_DIR})
-
-# installation
-install(CODE "set(CMAKE_INSTALL_LOCAL_ONLY true)")
-install(TARGETS tbd-sim RUNTIME DESTINATION simulator/bin)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../spiffs_image DESTINATION .)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../sample_rom/sample-rom.tbd DESTINATION simulator/data)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION simulator)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/www DESTINATION simulator)
+install(TARGETS ${LIB_NAME} LIBRARY DESTINATION tbd4vcv)
+install(FILES plugin.json DESTINATION tbd4vcv)
+install(FILES ../sample_rom/sample-rom.tbd DESTINATION tbd4vcv/sample_rom)
+install(DIRECTORY res DESTINATION tbd4vcv)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../spiffs_image DESTINATION tbd4vcv)
+install(FILES ../LICENSE readme.md DESTINATION tbd4vcv)
+#install(FILES ${Boost_LIBRARY_DIRS}/libboost_system-mt.dylib DESTINATION tbd4vcv)
 
 # package generation
 set(CPACK_GENERATOR "ZIP")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "tbd-sim")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "tbd4vcv")
 SET(CPACK_PACKAGE_VENDOR "ctag-tbd")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/readme.md")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE")
-
-SET(CPACK_PACKAGE_VERSION_MAJOR "0")
-SET(CPACK_PACKAGE_VERSION_MINOR "9")
-SET(CPACK_PACKAGE_VERSION_PATCH "18")
-#SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+SET(CPACK_PACKAGE_VERSION_MAJOR "2")
+SET(CPACK_PACKAGE_VERSION_MINOR "0")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+# Tell CPack not to put everything inside an enclosing directory.
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+# Apparently this should be always on but isn't for backwards compatibility.
+set(CPACK_VERBATIM_VARIABLES YES)
 include(CPack)

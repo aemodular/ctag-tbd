@@ -53,6 +53,10 @@ https://www.embedded.com/modern-c-in-embedded-systems-part-1-myth-and-reality/
 
 void app_main() {
 
+    // wait until power is somewhat more settled
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+
+    // init fs
     DRIVERS::FileSystem::InitFS();
 
 #ifndef CONFIG_TBD_PLATFORM_STR
@@ -63,6 +67,7 @@ void app_main() {
 #if defined(CONFIG_TBD_PLATFORM_AEM) || defined(CONFIG_TBD_PLATFORM_MK2)
     DRIVERS::Display::Init();
     DRIVERS::Display::ShowFWVersion();
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
 #endif
 
 #if defined(CONFIG_SERIAL_UI)

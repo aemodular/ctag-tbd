@@ -112,7 +112,7 @@
     <ons-list-item>
         <div style="text-align: center; margin-top: 10px;">
             <ons-button id="download-backup" style="margin-top: 10px;">Download Backup</ons-button>
-            <ons-button id="upload-backup" style="margin-top: 10px;">Upload Backup</ons-button>
+            <ons-button id="upload-backup" style="margin-top: 10px;background-color: red">Upload Backup (OVERWRITE!!!)</ons-button>
             <input id="uploadBackup" type="file" hidden/>
             <ons-button id="go-cal-backup" style="margin-top: 10px;">Calibration Backup</ons-button>
         </div>
@@ -303,6 +303,7 @@
                                     let presets = [];
                                     let calibration = {};
                                     let configuration = {};
+                                    let favorites = {};
                                     $.getq('myq',
                                         'api/v1/getCalibration',
                                         data => {
@@ -313,6 +314,12 @@
                                         'api/v1/getConfiguration',
                                         data => {
                                             configuration = data;
+                                        }
+                                    );
+                                    $.postq('myq',
+                                        'api/v1/favorites/getAll',
+                                        data => {
+                                            favorites = data;
                                         }
                                     );
                                     for (let i = 0; i < data.length; i++) {
@@ -334,7 +341,8 @@
                                                     let all = {
                                                         presets: presets,
                                                         calibration: calibration,
-                                                        configuration: configuration
+                                                        configuration: configuration,
+                                                        favorites: favorites
                                                     }
                                                     zip.file('all.jsn', JSON.stringify(all));
                                                     zip.generateAsync({type: "blob"})
@@ -543,23 +551,43 @@
             }
             function performUploadBackup(data){
                 // console.log(JSON.stringify(data.calibration));
-                $.ajaxq('myq', {
-                    url: '/api/v1/setCalibration',
-                    type: 'post',
-                    data: JSON.stringify(data.calibration),
-                    success: function () {
-                        ons.notification.toast('Calibration data persisted!', {
-                            timeout: 1000,
-                            animation: 'fall'
-                        });
-                    },
-                    error: function () {
-                        ons.notification.toast('Error persisting calibration data!', {
-                            timeout: 1000,
-                            animation: 'fall'
+                if(data.calibration !== null){
+                    $.ajaxq('myq', {
+                        url: '/api/v1/setCalibration',
+                        type: 'post',
+                        data: JSON.stringify(data.calibration),
+                        success: function () {
+                            ons.notification.toast('Calibration data persisted!', {
+                                timeout: 1000,
+                                animation: 'fall'
+                            });
+                        },
+                        error: function () {
+                            ons.notification.toast('Error persisting calibration data!', {
+                                timeout: 1000,
+                                animation: 'fall'
+                            });
+                        }
+                    });
+                }
+                if(Array.isArray(data.favorites)){
+                    for(let i in data.favorites){
+                        $.ajaxq('myq', {
+                            url: '/api/v1/favorites/store/' + i,
+                            type: 'post',
+                            data: JSON.stringify(data.favorites[i]),
+                            success: function () {
+                                console.log('Favorite ' + i + ' persisted!');
+                            },
+                            error: function () {
+                                ons.notification.toast('Error persisting favorite ' + i + ' !', {
+                                    timeout: 1000,
+                                    animation: 'fall'
+                                });
+                            }
                         });
                     }
-                });
+                }
                 let presets = data.presets;
                 presets.forEach(plugin => {
                     if(plugin.presets.patches.length == 0){
@@ -598,10 +626,11 @@
                                     if(found == undefined) console.log('Removing old param ' + param.id);
                                     return found != undefined;
                                 });
-                                $.postq('myq',
-                                    '/api/v1/setPresetData/' + plugin.id,
-                                    JSON.stringify(p), 'json');
                             });
+                            // overwrite existing preset storage
+                            $.postq('myq',
+                                '/api/v1/setPresetData/' + plugin.id,
+                                JSON.stringify(plugin.presets), 'json');
                         }
                     );
                 });
